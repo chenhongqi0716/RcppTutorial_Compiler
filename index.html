@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>工欲善其事，必先利其器</title>
+  <meta charset="utf-8">
+  <meta name="description" content="工欲善其事，必先利其器">
+  <meta name="author" content="Wush Wu">
+  <meta name="generator" content="slidify" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/default.css" media="all" >
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/phone.css" 
+    media="only screen and (max-device-width: 480px)" >
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/slidify.css" >
+  <link rel="stylesheet" href="libraries/highlighters/highlight.js/css/tomorrow.css" />
+  <base target="_blank"> <!-- This amazingness opens all links in a new tab. -->  <link rel=stylesheet href="./assets/css/custom.css"></link>
+<link rel=stylesheet href="./assets/css/ribbons.css"></link>
+
+  
+  <!-- Grab CDN jQuery, fall back to local if offline -->
+  <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.min.js"></script>
+  <script>window.jQuery || document.write('<script src="libraries/widgets/quiz/js/jquery.js"><\/script>')</script> 
+  <script data-main="libraries/frameworks/io2012/js/slides" 
+    src="libraries/frameworks/io2012/js/require-1.0.8.min.js">
+  </script>
+  
+  
+
+</head>
+<body style="opacity: 0">
+  <slides class="layout-widescreen">
+    
+    <!-- LOGO SLIDE -->
+        <slide class="title-slide segue nobackground">
+  <aside class="gdbar">
+    <img src="assets/img/Taiwan-R-logo.png">
+  </aside>
+  <hgroup class="auto-fadein">
+    <h1>工欲善其事，必先利其器</h1>
+    <h2></h2>
+    <p>Wush Wu<br/>Taiwan R User Group</p>
+  </hgroup>
+  <article></article>  
+</slide>
+    
+
+    <!-- SLIDES -->
+    <slide class="segue dark" id="slide-1" style="background:; background-repeat:no-repeat; background-position:center; ">
+  <img src="assets/img/Taiwan-R-logo.png" class="logo fit100" />
+  <hgroup>
+    <h2>課前須知</h2>
+  </hgroup>
+  <article data-timings="">
+    
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="large" id="slide-2">
+<img src="assets/img/Taiwan-R-logo.png" class="logo fit100" />
+<hgroup>
+  
+</hgroup>
+<article class = 'flexbox vcenter'>
+<p>課程目標</p>
+
+<h3>初步了解Rcpp的運作原理</h3>
+
+<h3>初步了解編譯器的使用</h3>
+
+<h3>掌握編譯過程錯誤的訊息</h3>
+
+</article>
+<!-- Presenter Notes -->
+</slide>
+<slide class="" id="slide-3" style="background:; background-repeat:no-repeat; background-position:center; ">
+  <img src="assets/img/Taiwan-R-logo.png" class="logo fit100" />
+  <hgroup>
+    <h2>環境設定</h2>
+  </hgroup>
+  <article data-timings="">
+    
+<div style='float:left;width:48%;'>
+<h3>程式版本</h3>
+
+<ul>
+<li>R (&gt;= 3.0)</li>
+<li>Rcpp (&gt;= 0.11)</li>
+</ul>
+
+</div>
+  <div style='float:right;width:48%;'>
+<pre><code class="r">R.Version()$version.string
+</code></pre>
+
+<pre><code>## [1] &quot;R version 3.0.3 (2014-03-06)&quot;
+</code></pre>
+
+<pre><code class="r">packageVersion(&quot;Rcpp&quot;)
+</code></pre>
+
+<pre><code>## [1] &#39;0.11.1&#39;
+</code></pre>
+
+<pre><code class="r">library(Rcpp)
+cppFunction(code=&#39;
+void hello() {
+  Rcout &lt;&lt; &quot;hello&quot; &lt;&lt; std::endl;
+}&#39;)
+hello()# 應該出現hello
+</code></pre>
+
+<pre><code>## hello
+</code></pre>
+
+</div>
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="segue dark" id="slide-4" style="background:; background-repeat:no-repeat; background-position:center; ">
+  <img src="assets/img/Taiwan-R-logo.png" class="logo fit100" />
+  <hgroup>
+    <h2>Rcpp 的運作原理</h2>
+  </hgroup>
+  <article data-timings="">
+    
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="large" id="slide-5">
+<img src="assets/img/Taiwan-R-logo.png" class="logo fit100" />
+<hgroup>
+  
+</hgroup>
+<article class = 'flexbox vcenter'>
+<p>R 是 C 寫的</p>
+
+<pre><code>typedef struct SEXPREC {
+    SEXPREC_HEADER;
+    union {
+  struct primsxp_struct primsxp;
+    struct symsxp_struct symsxp;
+    struct listsxp_struct listsxp;
+    struct envsxp_struct envsxp;
+    struct closxp_struct closxp;
+    struct promsxp_struct promsxp;
+    } u;
+} SEXPREC, *SEXP;
+</code></pre>
+
+</article>
+<!-- Presenter Notes -->
+</slide>
+<slide class="large" id="slide-6">
+<img src="assets/img/Taiwan-R-logo.png" class="logo fit100" />
+<hgroup>
+  
+</hgroup>
+<article class = 'flexbox vcenter'>
+<p>R 有釋出C 的API</p>
+
+<pre><code class="c">#include &lt;R.h&gt;
+#include &lt;Rdefines.h&gt;
+#include &lt;stdio.h&gt;
+SEXP helloRC() {
+  Rprintf(&quot;Hello World!\n&quot;);
+  return(R_NilValue);
+}
+</code></pre>
+
+</article>
+<!-- Presenter Notes -->
+</slide>
+<slide class="large" id="slide-7">
+<img src="assets/img/Taiwan-R-logo.png" class="logo fit100" />
+<hgroup>
+  
+</hgroup>
+<article class = 'flexbox vcenter'>
+<p>利用R 呼叫GCC編譯helloRC.c</p>
+
+<pre><code>R CMD SHLIB helloRC.c
+</code></pre>
+
+<pre><code>gcc -I/opt/local/Library/Frameworks/R.framework/Resources/include -DNDEBUG  -I/o
+pt/local/include    -fPIC  -pipe -Os -flax-vector-conversions -arch x86_64  -c h
+elloRC.c -o helloRC.o
+gcc -dynamiclib -Wl,-headerpad_max_install_names -undefined dynamic_lookup -sing
+le_module -multiply_defined suppress -L/opt/local/lib -Wl,-headerpad_max_install
+_names -arch x86_64 -o helloRC.so helloRC.o -F/opt/local/Library/Frameworks/R.fr
+amework/.. -framework R -Wl,-framework -Wl,CoreFoundation
+
+</code></pre>
+
+</article>
+<!-- Presenter Notes -->
+</slide>
+<slide class="large" id="slide-8">
+<img src="assets/img/Taiwan-R-logo.png" class="logo fit100" />
+<hgroup>
+  
+</hgroup>
+<article class = 'flexbox vcenter'>
+<p>R 很多內建函數的也是C 函數</p>
+
+<pre><code>SEXP savehistory(SEXP call, SEXP op, SEXP args, SEXP env)
+{
+    SEXP sfile;
+
+    args = CDR(args);
+    sfile = CAR(args);
+    // ...
+}
+</code></pre>
+
+</article>
+<!-- Presenter Notes -->
+</slide>
+<slide class="large" id="slide-9">
+<img src="assets/img/Taiwan-R-logo.png" class="logo fit100" />
+<hgroup>
+  
+</hgroup>
+<article class = 'flexbox vcenter'>
+<p>程式碼經過編譯後，再由機器執行</p>
+
+<h3>C/C++ 先由編譯器編譯成機器碼後，才執行</h3>
+
+<h3>R 執行的時候才由直譯器轉成機器碼後，才執行</h3>
+
+</article>
+<!-- Presenter Notes -->
+</slide>
+<slide class="segue dark" id="slide-10" style="background:; background-repeat:no-repeat; background-position:center; ">
+  <img src="assets/img/Taiwan-R-logo.png" class="logo fit100" />
+  <hgroup>
+    <h2>認識編譯器</h2>
+  </hgroup>
+  <article data-timings="">
+    
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="large" id="slide-11">
+<img src="assets/img/Taiwan-R-logo.png" class="logo fit100" />
+<hgroup>
+  
+</hgroup>
+<article class = 'flexbox vcenter'>
+<p>機器語言</p>
+
+<p><code>00000 10011110</code></p>
+
+</article>
+<!-- Presenter Notes -->
+</slide>
+<slide class="large" id="slide-12">
+<img src="assets/img/Taiwan-R-logo.png" class="logo fit100" />
+<hgroup>
+  
+</hgroup>
+<article class = 'flexbox vcenter'>
+<p>把程式碼變成機器語言</p>
+
+<p><code>
+Rcout &lt;&lt; &quot;hello&quot; &lt;&lt; std::endl;
+</code></p>
+
+<p>Magic!!</p>
+
+<p><code>
+0101...
+</code></p>
+
+</article>
+<!-- Presenter Notes -->
+</slide>
+<slide class="large" id="slide-13">
+<img src="assets/img/Taiwan-R-logo.png" class="logo fit100" />
+<hgroup>
+  
+</hgroup>
+<article class = 'flexbox vcenter'>
+<p>變魔術的(簡易)過程：</p>
+
+<p><code>.cpp</code> \(\Rightarrow\) <code>.o</code> \(\Rightarrow\) <code>.so</code>或<code>.dll</code></p>
+
+</article>
+<!-- Presenter Notes -->
+</slide>
+<slide class="large" id="slide-14">
+<img src="assets/img/Taiwan-R-logo.png" class="logo fit100" />
+<hgroup>
+  
+</hgroup>
+<div style='float:left;width:48%;' class='flexbox vcenter'>
+  <p><center><h1><code>hello.cpp</code> \(\Rightarrow\) <code>hello.o</code></h1></center></p>
+
+<h2>編譯</h2>
+
+<h3>前置處理</h3>
+
+<h3>編譯</h3>
+
+<h3>組譯</h3>
+
+</div>
+<div style='float:right;width:48%;' class='flexbox vcenter'>
+  <p><center><h1><code>hello.o</code> \(\Rightarrow\) <code>hello.so</code></h1></center></p>
+
+<h2>連結</h2>
+
+</div>
+</slide>
+<slide class="large" id="slide-15">
+<img src="assets/img/Taiwan-R-logo.png" class="logo fit100" />
+<hgroup>
+  
+</hgroup>
+<article class = 'flexbox vcenter'>
+<p>編譯器的參數</p>
+
+<pre><code>gcc -I/opt/local/Library/Frameworks/R.framework/Resources/include -DNDEBUG  -I/o
+pt/local/include    -fPIC  -pipe -Os -flax-vector-conversions -arch x86_64  -c h
+elloRC.c -o helloRC.o
+gcc -dynamiclib -Wl,-headerpad_max_install_names -undefined dynamic_lookup -sing
+le_module -multiply_defined suppress -L/opt/local/lib -Wl,-headerpad_max_install
+_names -arch x86_64 -o helloRC.so helloRC.o -F/opt/local/Library/Frameworks/R.fr
+amework/.. -framework R -Wl,-framework -Wl,CoreFoundation
+
+</code></pre>
+
+<h3><code>-I</code>, <code>-L</code>, <code>-l</code>, <code>-O2</code>, <code>-D</code></h3>
+
+</article>
+<!-- Presenter Notes -->
+</slide>
+<slide class="segue dark" id="slide-16" style="background:; background-repeat:no-repeat; background-position:center; ">
+  <img src="assets/img/Taiwan-R-logo.png" class="logo fit100" />
+  <hgroup>
+    <h2>掌握編譯過程錯誤的訊息</h2>
+  </hgroup>
+  <article data-timings="">
+    
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="large" id="slide-17">
+<img src="assets/img/Taiwan-R-logo.png" class="logo fit100" />
+<hgroup>
+  
+</hgroup>
+<article class = 'flexbox vcenter'>
+<p>編譯期錯誤(Compile Time Error)</p>
+
+<p>連結期錯誤(Linking Error)</p>
+
+<p>執行期錯誤(Runtime Error)</p>
+
+</article>
+<!-- Presenter Notes -->
+</slide>
+<slide class="large" id="slide-18">
+<img src="assets/img/Taiwan-R-logo.png" class="logo fit100" />
+<hgroup>
+  
+</hgroup>
+<article class = 'flexbox vcenter'>
+<p>編譯期錯誤: 語法錯誤</p>
+
+<pre><code>#include &lt;R.h&gt;
+#include &lt;Rdefines.h&gt;
+#include &lt;stdio.h&gt;
+SEXP helloRC() {
+  Rprintf(&quot;Hello World!\n&quot;)
+  return(R_NilValue);
+}
+
+</code></pre>
+
+<pre><code>gcc -I/opt/local/Library/Frameworks/R.framework/Resources/include -DNDEBUG  -I/o
+pt/local/include    -fPIC  -pipe -Os -flax-vector-conversions -arch x86_64  -c h
+elloRCError1.c -o helloRCError1.o
+helloRCError1.c: In function &#39;helloRC&#39;:
+helloRCError1.c:6:3: error: expected &#39;;&#39; before &#39;return&#39;
+make[1]: *** [helloRCError1.o] Error 1
+
+</code></pre>
+
+</article>
+<!-- Presenter Notes -->
+</slide>
+<slide class="large" id="slide-19">
+<img src="assets/img/Taiwan-R-logo.png" class="logo fit100" />
+<hgroup>
+  
+</hgroup>
+<article class = 'flexbox vcenter'>
+<p>編譯期錯誤: 找不到檔案</p>
+
+<pre><code>#include &lt;string&gt;
+#include &lt;Rcpp.h&gt;
+
+//[[Rcpp::export]]
+int error2() {
+  const int i = 2;
+  return i;
+}
+
+</code></pre>
+
+<pre><code>g++ -I/opt/local/Library/Frameworks/R.framework/Resources/include -DNDEBUG  -I/o
+pt/local/include    -fPIC  -pipe -Os -arch x86_64  -c helloRCError2.cpp -o hello
+RCError2.o
+helloRCError2.cpp:2:18: fatal error: Rcpp.h: No such file or directory
+compilation terminated.
+make[1]: *** [helloRCError2.o] Error 1
+
+</code></pre>
+
+</article>
+<!-- Presenter Notes -->
+</slide>
+<slide class="large" id="slide-20">
+<img src="assets/img/Taiwan-R-logo.png" class="logo fit100" />
+<hgroup>
+  
+</hgroup>
+<article class = 'flexbox vcenter'>
+<p>編譯期錯誤: 形態錯誤</p>
+
+<pre><code>#include &lt;string&gt;
+#include &lt;Rcpp.h&gt;
+
+//[[Rcpp::export]]
+int error2() {
+  std::string i(&quot;hello world&quot;);
+  return i;
+}
+
+</code></pre>
+
+<pre><code>g++ -I/opt/local/Library/Frameworks/R.framework/Resources/include -DNDEBUG  -I/o
+pt/local/include   -I/Users/wush/Library/R/3.0/library/Rcpp/include -fPIC  -pipe
+ -Os -arch x86_64  -c helloRCError2.cpp -o helloRCError2.o
+helloRCError2.cpp: In function &#39;int error2()&#39;:
+helloRCError2.cpp:7:10: error: cannot convert &#39;std::string {aka std::basic_strin
+g&lt;char&gt;}&#39; to &#39;int&#39; in return
+make[1]: *** [helloRCError2.o] Error 1
+
+</code></pre>
+
+</article>
+<!-- Presenter Notes -->
+</slide>
+<slide class="large" id="slide-21">
+<img src="assets/img/Taiwan-R-logo.png" class="logo fit100" />
+<hgroup>
+  
+</hgroup>
+<article class = 'flexbox vcenter'>
+<p>編譯期錯誤: 找不到宣告</p>
+
+<pre><code>#include &lt;string&gt;
+#include &lt;Rcpp.h&gt;
+
+//[[Rcpp::export]]
+int error2() {
+  return error3();
+}
+
+</code></pre>
+
+<pre><code>[1] &quot;g++ -I/opt/local/Library/Frameworks/R.framework/Resources/include -DNDEBUG  -I/opt/local/include   -I/Users/wush/Library/R/3.0/library/Rcpp/include -fPIC  -pipe -Os -arch x86_64  -c helloRCError3.cpp -o helloRCError3.o&quot;
+[2] &quot;helloRCError3.cpp: In function &#39;int error2()&#39;:&quot;                                                                                                                                                                            
+[3] &quot;helloRCError3.cpp:6:17: error: &#39;error3&#39; was not declared in this scope&quot;                                                                                                                                                    
+[4] &quot;make[1]: *** [helloRCError3.o] Error 1&quot;                                                                                                                                                                                    
+attr(,&quot;status&quot;)
+[1] 1
+g++ -I/opt/local/Library/Frameworks/R.framework/Resources/include -DNDEBUG  -I/o
+pt/local/include   -I/Users/wush/Library/R/3.0/library/Rcpp/include -fPIC  -pipe
+ -Os -arch x86_64  -c helloRCError3.cpp -o helloRCError3.o
+helloRCError3.cpp: In function &#39;int error2()&#39;:
+helloRCError3.cpp:6:17: error: &#39;error3&#39; was not declared in this scope
+make[1]: *** [helloRCError3.o] Error 1
+
+</code></pre>
+
+</article>
+<!-- Presenter Notes -->
+</slide>
+<slide class="large" id="slide-22">
+<img src="assets/img/Taiwan-R-logo.png" class="logo fit100" />
+<hgroup>
+  
+</hgroup>
+<article class = 'flexbox vcenter'>
+<p>連結期錯誤: 找不到檔案</p>
+
+<pre><code>#include &lt;string&gt;
+#include &lt;Rcpp.h&gt;
+#include &quot;error3.h&quot;
+
+//[[Rcpp::export]]
+int error2() {
+  return error3();
+}
+
+</code></pre>
+
+<pre><code>g++ -dynamiclib -Wl,-headerpad_max_install_names -undefined dynamic_lookup -sing
+le_module -multiply_defined suppress -L/opt/local/lib -Wl,-headerpad_max_install
+_names -arch x86_64 -o helloRCError4.so helloRCError4.o nofile.o -F/opt/local/Li
+brary/Frameworks/R.framework/.. -framework R -Wl,-framework -Wl,CoreFoundation
+g++: error: nofile.o: No such file or directory
+make[1]: *** [helloRCError4.so] Error 1
+
+</code></pre>
+
+</article>
+<!-- Presenter Notes -->
+</slide>
+<slide class="large" id="slide-23">
+<img src="assets/img/Taiwan-R-logo.png" class="logo fit100" />
+<hgroup>
+  
+</hgroup>
+<article class = 'flexbox vcenter'>
+<p>連結期錯誤: 找不到定義</p>
+
+<pre><code>#include &lt;string&gt;
+#include &lt;Rcpp.h&gt;
+#include &quot;error3.h&quot;
+
+//[[Rcpp::export]]
+int error2() {
+  return error3();
+}
+
+</code></pre>
+
+<pre><code>無法載入共享物件 &#39;/Users/wush/Projects/RTutorial/Rcpp_Tutorial_Compiler/helloRCError4.so
+&#39; ：
+ dlopen(/Users/wush/Projects/RTutorial/Rcpp_Tutorial_Compiler/helloRCError4.
+so, 6): Symbol not found: __Z6error3v
+  Referenced from: /Users/wush/Projects/RT
+utorial/Rcpp_Tutorial_Compiler/helloRCError4.so
+  Expected in: flat namespace
+ i
+n /Users/wush/Projects/RTutorial/Rcpp_Tutorial_Compiler/helloRCError4.so
+
+</code></pre>
+
+</article>
+<!-- Presenter Notes -->
+</slide>
+<slide class="large" id="slide-24">
+<img src="assets/img/Taiwan-R-logo.png" class="logo fit100" />
+<hgroup>
+  
+</hgroup>
+<article class = 'flexbox vcenter'>
+<p>常見錯誤與相關訊息</p>
+
+<!-- html table generated in R 3.0.3 by xtable 1.7-3 package -->
+
+<!-- Wed May 28 00:00:03 2014 -->
+
+<TABLE border=1>
+<TR> <TH>  </TH> <TH> 錯誤原因 </TH> <TH> 關鍵字 </TH>  </TR>
+  <TR> <TD align="right"> 1 </TD> <TD> 編譯期錯誤: 語法錯誤 </TD> <TD> error: expected  </TD> </TR>
+  <TR> <TD align="right"> 2 </TD> <TD> 編譯期錯誤: 找不到檔案 </TD> <TD> fatal error: *** No such file or directory </TD> </TR>
+  <TR> <TD align="right"> 3 </TD> <TD> 編譯期錯誤: 形態錯誤 </TD> <TD> error: cannot convert *** to *** in return </TD> </TR>
+  <TR> <TD align="right"> 4 </TD> <TD> 編譯期錯誤: 找不到宣告 </TD> <TD> error: *** was not declared in this scope </TD> </TR>
+  <TR> <TD align="right"> 5 </TD> <TD> 連結期錯誤: 找不到檔案 </TD> <TD> g++: error: ***: No such file or directory </TD> </TR>
+  <TR> <TD align="right"> 6 </TD> <TD> 連結期錯誤: 找不到定義 </TD> <TD> Symbol not found: __Z6error3v </TD> </TR>
+  <TR> <TD align="right"> 7 </TD> <TD> 其他 </TD> <TD> ... </TD> </TR>
+   </TABLE>
+
+<p><br/>
+一定要學習讀錯誤訊息</p>
+
+</article>
+<!-- Presenter Notes -->
+</slide>
+<slide class="large" id="slide-25">
+<img src="assets/img/Taiwan-R-logo.png" class="logo fit100" />
+<hgroup>
+  
+</hgroup>
+<article class = 'flexbox vcenter'>
+<p>請嘗試歸類下列錯誤訊息的原因</p>
+
+<pre><code class="r">library(devtools)
+install_github(&quot;RcppTutorial_Compiler&quot;, &quot;wush978&quot;, 
+               &quot;gh-pages&quot;, subdir=&quot;RcppTutorialExercise1&quot;)
+library(RcppTutorialExercise1)
+ex1.1()
+# ans1.1(1)
+ex1.2()
+# ans1.2(1)
+ex1.3()
+# ans1.3(1)
+ex1.4()
+# ans1.4(1)
+ex1.5()
+# ans1.5(1)
+</code></pre>
+
+</article>
+<!-- Presenter Notes -->
+</slide>
+    <slide class="backdrop"></slide>
+  </slides>
+  <div class="pagination pagination-small" id='io2012-ptoc' style="display:none;">
+    <ul>
+      <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=1 title='課前須知'>
+         1
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=2 title=''>
+         2
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=3 title='環境設定'>
+         3
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=4 title='Rcpp 的運作原理'>
+         4
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=5 title=''>
+         5
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=6 title=''>
+         6
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=7 title=''>
+         7
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=8 title=''>
+         8
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=9 title=''>
+         9
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=10 title='認識編譯器'>
+         10
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=11 title=''>
+         11
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=12 title=''>
+         12
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=13 title=''>
+         13
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=14 title=''>
+         14
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=15 title=''>
+         15
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=16 title='掌握編譯過程錯誤的訊息'>
+         16
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=17 title=''>
+         17
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=18 title=''>
+         18
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=19 title=''>
+         19
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=20 title=''>
+         20
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=21 title=''>
+         21
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=22 title=''>
+         22
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=23 title=''>
+         23
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=24 title=''>
+         24
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=25 title=''>
+         25
+      </a>
+    </li>
+  </ul>
+  </div>  <!--[if IE]>
+    <script 
+      src="http://ajax.googleapis.com/ajax/libs/chrome-frame/1/CFInstall.min.js">  
+    </script>
+    <script>CFInstall.check({mode: 'overlay'});</script>
+  <![endif]-->
+</body>
+  <!-- Load Javascripts for Widgets -->
+  
+  <!-- MathJax: Fall back to local if CDN offline but local image fonts are not supported (saves >100MB) -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [['$','$'], ['\\(','\\)']],
+        processEscapes: true
+      }
+    });
+  </script>
+  <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  <!-- <script src="https://c328740.ssl.cf1.rackcdn.com/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+  </script> -->
+  <script>window.MathJax || document.write('<script type="text/x-mathjax-config">MathJax.Hub.Config({"HTML-CSS":{imageFont:null}});<\/script><script src="libraries/widgets/mathjax/MathJax.js?config=TeX-AMS-MML_HTMLorMML"><\/script>')
+</script>
+<!-- LOAD HIGHLIGHTER JS FILES -->
+  <script src="libraries/highlighters/highlight.js/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <!-- DONE LOADING HIGHLIGHTER JS FILES -->
+   
+  </html>

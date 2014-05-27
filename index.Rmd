@@ -1,0 +1,476 @@
+---
+title       : 工欲善其事，必先利其器
+subtitle    : 
+author      : Wush Wu
+job         : Taiwan R User Group
+framework   : io2012        # {io2012, html5slides, shower, dzslides, ...}
+highlighter : highlight.js  # {highlight.js, prettify, highlight}
+hitheme     : tomorrow      # 
+widgets     : [mathjax]            # {mathjax, quiz, bootstrap}
+mode        : selfcontained # {standalone, draft}
+logo        : Taiwan-R-logo.png
+--- .segue .dark
+
+```{r setup, include=FALSE}
+library(knitr)
+library(Rcpp)
+library(whisker)
+library(formatR)
+library(xtable)
+```
+
+## 課前須知
+
+--- &vcenter .large
+
+課程目標
+
+### 初步了解Rcpp的運作原理
+
+### 初步了解編譯器的使用
+
+### 掌握編譯過程錯誤的訊息
+
+--- &twocol
+
+## 環境設定
+
+*** =left
+
+### 程式版本
+
+- R (>= 3.0)
+- Rcpp (>= 0.11)
+
+*** =right
+
+```{r helloworld, tidy=FALSE}
+R.Version()$version.string
+packageVersion("Rcpp")
+library(Rcpp)
+cppFunction(code='
+void hello() {
+  Rcout << "hello" << std::endl;
+}')
+hello()# 應該出現hello
+```
+
+--- .segue .dark
+
+## Rcpp 的運作原理
+
+--- &vcenter .large
+
+R 是 C 寫的
+
+```
+typedef struct SEXPREC {
+    SEXPREC_HEADER;
+    union {
+  struct primsxp_struct primsxp;
+	struct symsxp_struct symsxp;
+	struct listsxp_struct listsxp;
+	struct envsxp_struct envsxp;
+	struct closxp_struct closxp;
+	struct promsxp_struct promsxp;
+    } u;
+} SEXPREC, *SEXP;
+```
+
+--- &vcenter .large
+
+R 有釋出C 的API
+
+```{r helloRC, engine='c', eval=FALSE}
+#include <R.h>
+#include <Rdefines.h>
+#include <stdio.h>
+SEXP helloRC() {
+  Rprintf("Hello World!\n");
+  return(R_NilValue);
+}
+```
+
+--- &vcenter .large
+
+利用R 呼叫GCC編譯helloRC.c
+
+```
+R CMD SHLIB helloRC.c
+```
+
+```
+```{r helloRCcmd, echo=FALSE, eval=TRUE, results='asis', warning=FALSE}
+invisible({
+  file.remove("helloRC.o")
+  file.remove("helloRC.so")
+})
+str.raw <- system("R CMD SHLIB helloRC.c", intern=TRUE)
+n <- 80
+for(i in seq_along(str.raw)) {
+  str <- str.raw[i]
+  start <- seq(from = 1, by = n, to = nchar(str) - 1)
+  end <- c(tail(seq(from = 1, by = n, to = nchar(str) - 1), -1) - 1, nchar(str))
+  cat(paste(substring(str, start, end), collapse="\n"))
+  cat("\n")
+}
+```
+```
+
+--- &vcenter .large
+
+R 很多內建函數的也是C 函數
+
+```
+SEXP savehistory(SEXP call, SEXP op, SEXP args, SEXP env)
+{
+    SEXP sfile;
+
+    args = CDR(args);
+    sfile = CAR(args);
+    // ...
+}
+```
+
+--- &vcenter .large
+
+程式碼經過編譯後，再由機器執行
+
+### C/C++ 先由編譯器編譯成機器碼後，才執行
+
+### R 執行的時候才由直譯器轉成機器碼後，才執行
+
+--- .segue .dark
+
+## 認識編譯器
+
+--- &vcenter .large
+
+機器語言
+
+<code>00000 10011110</code>
+
+--- &vcenter .large
+
+把程式碼變成機器語言
+
+<code>
+Rcout << "hello" << std::endl;
+</code>
+
+Magic!!
+
+<code>
+0101...
+</code>
+
+--- &vcenter .large
+
+變魔術的(簡易)過程：
+
+`.cpp` $\Rightarrow$ `.o` $\Rightarrow$ `.so`或`.dll`
+
+--- &twocolvcenter .large
+
+*** =left
+
+<center><h1>`hello.cpp` $\Rightarrow$ `hello.o`</h1></center>
+
+## 編譯
+
+### 前置處理
+
+### 編譯
+
+### 組譯
+
+*** =right
+
+<center><h1>`hello.o` $\Rightarrow$ `hello.so`</h1></center>
+
+## 連結
+
+--- &vcenter .large
+
+編譯器的參數
+
+```
+```{r helloRCcmd2, echo=FALSE, eval=TRUE, results='asis', warning=FALSE}
+invisible({
+  file.remove("helloRC.o")
+  file.remove("helloRC.so")
+})
+str.raw <- system("R CMD SHLIB helloRC.c", intern=TRUE)
+n <- 80
+for(i in seq_along(str.raw)) {
+  str <- str.raw[i]
+  start <- seq(from = 1, by = n, to = nchar(str) - 1)
+  end <- c(tail(seq(from = 1, by = n, to = nchar(str) - 1), -1) - 1, nchar(str))
+  cat(paste(substring(str, start, end), collapse="\n"))
+  cat("\n")
+}
+```
+```
+
+### `-I`, `-L`, `-l`, `-O2`, `-D`
+
+--- .segue .dark
+
+## 掌握編譯過程錯誤的訊息
+
+--- &vcenter .large
+
+編譯期錯誤(Compile Time Error)
+
+連結期錯誤(Linking Error)
+
+執行期錯誤(Runtime Error)
+
+--- &vcenter .large
+
+編譯期錯誤: 語法錯誤
+
+```
+```{r err1, echo=FALSE, results='asis', cache=TRUE}
+name <- "helloRCError1"
+str.raw <- readLines(sprintf("%s.c", name))
+cat(paste(str.raw, collapse="\n"));cat("\n")
+```
+```
+
+```
+```{r, echo=FALSE, warning=FALSE, results='asis', dependson="err1"}
+invisible({
+  file.remove(sprintf("%s.o", name))
+  file.remove(sprintf("%s.so", name))
+})
+  str.raw <- system(sprintf("R CMD SHLIB %s.c 2>&1", name), intern=TRUE)
+
+n <- 80
+for(i in seq_along(str.raw)) {
+  str <- str.raw[i]
+  start <- seq(from = 1, by = n, to = nchar(str) - 1)
+  end <- c(tail(seq(from = 1, by = n, to = nchar(str) - 1), -1) - 1, nchar(str))
+  cat(paste(substring(str, start, end), collapse="\n"))
+  cat("\n")
+}
+```
+```
+
+--- &vcenter .large
+
+編譯期錯誤: 找不到檔案
+
+```
+```{r err2, echo=FALSE, results='asis', cache=TRUE}
+name <- "helloRCError2"
+str.raw <- readLines(sprintf("%s.cpp", name))
+cat(paste(str.raw, collapse="\n"));cat("\n")
+```
+```
+
+```
+```{r, echo=FALSE, warning=FALSE, results='asis', dependson="err2"}
+library(Rcpp)
+invisible({
+  file.remove(sprintf("%s.o", name))
+  file.remove(sprintf("%s.so", name))
+})
+  str.raw <- system(sprintf("R CMD SHLIB %s.cpp 2>&1", name), intern=TRUE)
+
+n <- 80
+for(i in seq_along(str.raw)) {
+  str <- str.raw[i]
+  start <- seq(from = 1, by = n, to = nchar(str) - 1)
+  end <- c(tail(seq(from = 1, by = n, to = nchar(str) - 1), -1) - 1, nchar(str))
+  cat(paste(substring(str, start, end), collapse="\n"))
+  cat("\n")
+}
+```
+```
+
+--- &vcenter .large
+
+編譯期錯誤: 形態錯誤
+
+```
+```{r err3, echo=FALSE, results='asis', cache=TRUE}
+name <- "helloRCError2"
+str.raw <- readLines(sprintf("%s.cpp", name))
+cat(paste(str.raw, collapse="\n"));cat("\n")
+```
+```
+
+```
+```{r, echo=FALSE, warning=FALSE, results='asis', dependson="err3"}
+library(Rcpp)
+invisible({
+  file.remove(sprintf("%s.o", name))
+  file.remove(sprintf("%s.so", name))
+})
+  
+  Sys.setenv("PKG_CXXFLAGS" = Rcpp:::RcppCxxFlags())
+  str.raw <- system(sprintf("R CMD SHLIB %s.cpp 2>&1", name), intern=TRUE)
+
+n <- 80
+for(i in seq_along(str.raw)) {
+  str <- str.raw[i]
+  start <- seq(from = 1, by = n, to = nchar(str) - 1)
+  end <- c(tail(seq(from = 1, by = n, to = nchar(str) - 1), -1) - 1, nchar(str))
+  cat(paste(substring(str, start, end), collapse="\n"))
+  cat("\n")
+}
+```
+```
+
+--- &vcenter .large
+
+編譯期錯誤: 找不到宣告
+
+```
+```{r err4, echo=FALSE, results='asis', cache=TRUE, warning=FALSE}
+name <- "helloRCError3"
+str.raw <- readLines(sprintf("%s.cpp", name))
+cat(paste(str.raw, collapse="\n"));cat("\n") 
+```
+```
+
+```
+```{r, echo=FALSE, warning=FALSE, results='asis', dependson="err4"}
+library(Rcpp)
+invisible({
+  file.remove(sprintf("%s.o", name))
+  file.remove(sprintf("%s.so", name))
+})
+  
+  Sys.setenv("PKG_LIBS" = "nofile.o")
+  str.raw <- system(sprintf("R CMD SHLIB %s.cpp 2>&1", name), intern=TRUE)
+  print(str.raw)
+n <- 80
+for(i in seq_along(str.raw)) {
+  str <- str.raw[i]
+  start <- seq(from = 1, by = n, to = nchar(str) - 1)
+  end <- c(tail(seq(from = 1, by = n, to = nchar(str) - 1), -1) - 1, nchar(str))
+  cat(paste(substring(str, start, end), collapse="\n"))
+  cat("\n")
+}
+```
+```
+
+--- &vcenter .large
+
+連結期錯誤: 找不到檔案
+
+```
+```{r err5, echo=FALSE, results='asis', cache=TRUE, warning=FALSE}
+name <- "helloRCError4"
+str.raw <- readLines(sprintf("%s.cpp", name))
+cat(paste(str.raw, collapse="\n"));cat("\n") 
+```
+```
+
+```
+```{r, echo=FALSE, warning=FALSE, results='asis', dependson="err5"}
+library(Rcpp)
+invisible({
+  file.remove(sprintf("%s.o", name))
+  file.remove(sprintf("%s.so", name))
+})
+  
+  Sys.setenv("PKG_LIBS" = "nofile.o")
+  str.raw <- system(sprintf("R CMD SHLIB %s.cpp 2>&1", name), intern=TRUE)
+  str.raw <- str.raw[-1]
+n <- 80
+for(i in seq_along(str.raw)) {
+  str <- str.raw[i]
+  start <- seq(from = 1, by = n, to = nchar(str) - 1)
+  end <- c(tail(seq(from = 1, by = n, to = nchar(str) - 1), -1) - 1, nchar(str))
+  cat(paste(substring(str, start, end), collapse="\n"))
+  cat("\n")
+}
+```
+```
+
+--- &vcenter .large
+
+連結期錯誤: 找不到定義
+
+```
+```{r err6, echo=FALSE, results='asis', cache=TRUE, warning=FALSE}
+name <- "helloRCError4"
+str.raw <- readLines(sprintf("%s.cpp", name))
+cat(paste(str.raw, collapse="\n"));cat("\n") 
+```
+```
+
+```
+```{r, echo=FALSE, warning=FALSE, results='asis', dependson="err6"}
+library(Rcpp)
+invisible({
+  file.remove(sprintf("%s.o", name))
+  file.remove(sprintf("%s.so", name))
+})
+  
+  Sys.setenv("PKG_LIBS" = "")
+  str.raw <- system(sprintf("R CMD SHLIB %s.cpp 2>&1", name), intern=TRUE)
+  str.raw <- tryCatch(dyn.load(sprintf("%s.so", name)), error = function(e) return(conditionMessage(e)))
+n <- 80
+for(i in seq_along(str.raw)) {
+  str <- str.raw[i]
+  start <- seq(from = 1, by = n, to = nchar(str) - 1)
+  end <- c(tail(seq(from = 1, by = n, to = nchar(str) - 1), -1) - 1, nchar(str))
+  cat(paste(substring(str, start, end), collapse="\n"))
+  cat("\n")
+}
+```
+```
+
+--- &vcenter .large
+
+常見錯誤與相關訊息
+
+```{r, echo=FALSE, results='asis'}
+err_message <- data.frame(
+  "錯誤原因" = c("編譯期錯誤: 語法錯誤", 
+    "編譯期錯誤: 找不到檔案", 
+    "編譯期錯誤: 形態錯誤",
+    "編譯期錯誤: 找不到宣告",
+    "連結期錯誤: 找不到檔案",
+    "連結期錯誤: 找不到定義",
+    "其他"
+    ),
+  "關鍵字" = c("error: expected ",
+    "fatal error: *** No such file or directory",
+    "error: cannot convert *** to *** in return",
+    "error: *** was not declared in this scope",
+    "g++: error: ***: No such file or directory",
+    "Symbol not found: __Z6error3v",
+    "..."
+    )
+  )
+print(xtable(err_message), type="html")
+```
+
+<br/>
+一定要學習讀錯誤訊息
+
+--- &vcenter .large
+
+請嘗試歸類下列錯誤訊息的原因
+
+```{r, eval=FALSE, tidy=FALSE}
+library(devtools)
+install_github("RcppTutorial_Compiler", "wush978", 
+               "gh-pages", subdir="RcppTutorialExercise1")
+library(RcppTutorialExercise1)
+ex1.1()
+# ans1.1(1)
+ex1.2()
+# ans1.2(1)
+ex1.3()
+# ans1.3(1)
+ex1.4()
+# ans1.4(1)
+ex1.5()
+# ans1.5(1)
+```
